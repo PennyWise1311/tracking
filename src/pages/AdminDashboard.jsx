@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
 import L from 'leaflet';
-import { LogOut, Users, Map as MapIcon, Crosshair, Settings, Trash2 } from 'lucide-react';
+import { LogOut, Users, Map as MapIcon, Crosshair, Settings, Trash2, RefreshCw } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
 const defaultCenter = [21.0285, 105.8542]; // Hà Nội
@@ -48,6 +48,8 @@ export default function AdminDashboard() {
   const [showSettings, setShowSettings] = useState(false);
   const [newWorkerPwd, setNewWorkerPwd] = useState(localStorage.getItem('app_worker_pwd') || '1');
   const [newAdminPwd, setNewAdminPwd] = useState(localStorage.getItem('app_admin_pwd') || '123');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const channelRef = useRef(null);
 
   useEffect(() => {
     if (!user || user.role !== 'admin') {
@@ -77,9 +79,13 @@ export default function AdminDashboard() {
     };
   }, [user, navigate]);
 
-  // Lắng nghe Supabase Presence (Chỉ lấy dữ liệu THẬT)
-  useEffect(() => {
+  const connectToSupabase = () => {
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+    }
+
     const channel = supabase.channel('tracking_room');
+    channelRef.current = channel;
 
     channel
       .on('presence', { event: 'sync' }, () => {
@@ -118,13 +124,25 @@ export default function AdminDashboard() {
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           console.log('Admin đã kết nối vào kênh lắng nghe');
+          setIsRefreshing(false);
         }
       });
+  };
 
+  // Lắng nghe Supabase Presence lần đầu
+  useEffect(() => {
+    connectToSupabase();
     return () => {
-      supabase.removeChannel(channel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
     };
   }, []);
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    connectToSupabase();
+  };
 
   const handleLogout = () => {
     logout();
@@ -165,7 +183,6 @@ export default function AdminDashboard() {
 
   if (!user) return null;
 
-  // Xoá bỏ toàn bộ MOCK DATA, chỉ lấy Real Workers
   const realWorkers = Object.values(realWorkersMap);
   const activeCount = realWorkers.filter(w => w.active).length;
 
@@ -236,6 +253,9 @@ export default function AdminDashboard() {
             <button className="btn btn-primary" style={{ flex: 1, padding: '12px' }} onClick={handleCenterAdmin}>
               <Crosshair size={18} />
               Vị trí của tôi
+            </button>
+            <button className="btn btn-accent" style={{ padding: '12px' }} onClick={handleRefresh} title="Làm mới kết nối">
+              <RefreshCw size={18} className={isRefreshing ? 'animate-spin' : ''} style={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none' }} />
             </button>
             <button className="btn btn-danger" style={{ padding: '12px' }} onClick={handleClearData} title="Xoá dữ liệu tạm">
               <Trash2 size={18} />

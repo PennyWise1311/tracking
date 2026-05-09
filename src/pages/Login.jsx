@@ -14,15 +14,19 @@ export default function Login() {
   const handleLogin = async (e, role) => {
     e.preventDefault();
     
+    // Lấy mật khẩu từ bộ nhớ (nếu Quản lý đã đổi)
+    const adminPwd = localStorage.getItem('app_admin_pwd') || '123';
+    const workerPwd = localStorage.getItem('app_worker_pwd') || '1';
+
     if (role === 'admin') {
-      if (username !== 'admin' || password !== '123') {
-        return alert('Tài khoản hoặc mật khẩu Quản lý không đúng! (TK: admin, MK: 123)');
+      if (username !== 'admin' || password !== adminPwd) {
+        return alert('Tài khoản hoặc mật khẩu Quản lý không đúng!');
       }
       login({ id: 'admin', name: 'Quản lý', role: 'admin' });
       navigate('/admin');
     } else {
       if (!username) return alert('Vui lòng nhập tên công nhân!');
-      if (password !== '1') return alert('Mật khẩu công nhân không đúng! (Mặc định MK là: 1)');
+      if (password !== workerPwd) return alert('Mật khẩu công nhân không đúng!');
       
       setIsChecking(true);
 
@@ -34,7 +38,6 @@ export default function Login() {
       channel.on('presence', { event: 'sync' }, () => {
         const state = channel.presenceState();
         const keys = Object.keys(state);
-        // Kiểm tra xem ID (chính là username) đã online chưa
         if (keys.includes(username)) {
           isDuplicate = true;
         }
@@ -50,7 +53,7 @@ export default function Login() {
         }
       });
 
-      // Nếu sau 2s không kết nối được hoặc không có ai, tự động cho vào (phòng hờ)
+      // Timeout phòng hờ
       const timeoutId = setTimeout(() => {
         if (isChecking) {
           supabase.removeChannel(channel);
@@ -92,7 +95,7 @@ export default function Login() {
           <input 
             type="password" 
             className="input-field" 
-            placeholder="Mật khẩu (Quản lý: 123 / Công nhân: 1)" 
+            placeholder="Mật khẩu" 
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             disabled={isChecking}

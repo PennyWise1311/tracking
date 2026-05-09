@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
 import L from 'leaflet';
-import { LogOut, Users, Map as MapIcon, Crosshair } from 'lucide-react';
+import { LogOut, Users, Map as MapIcon, Crosshair, Settings, Trash2 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
 const defaultCenter = [21.0285, 105.8542]; // Hà Nội
@@ -44,8 +44,10 @@ export default function AdminDashboard() {
   const [followAdmin, setFollowAdmin] = useState(true);
   const watchIdRef = useRef(null);
 
-  // Dữ liệu thật của công nhân từ Supabase
   const [realWorkersMap, setRealWorkersMap] = useState({});
+  const [showSettings, setShowSettings] = useState(false);
+  const [newWorkerPwd, setNewWorkerPwd] = useState(localStorage.getItem('app_worker_pwd') || '1');
+  const [newAdminPwd, setNewAdminPwd] = useState(localStorage.getItem('app_admin_pwd') || '123');
 
   useEffect(() => {
     if (!user || user.role !== 'admin') {
@@ -75,7 +77,7 @@ export default function AdminDashboard() {
     };
   }, [user, navigate]);
 
-  // Lắng nghe Supabase Presence
+  // Lắng nghe Supabase Presence (Chỉ lấy dữ liệu THẬT)
   useEffect(() => {
     const channel = supabase.channel('tracking_room');
 
@@ -87,16 +89,14 @@ export default function AdminDashboard() {
           const next = { ...prev };
           const activeIds = new Set();
 
-          // Cập nhật người đang online
           for (const key in state) {
             if (state[key].length > 0) {
-              const data = state[key][0]; // lấy data mới nhất của user đó
+              const data = state[key][0];
               next[data.id] = { ...data, active: data.active !== false };
               activeIds.add(data.id);
             }
           }
 
-          // Những người có trong map nhưng không có trong presence -> mất kết nối
           for (const id in next) {
             if (!activeIds.has(id)) {
               next[id].active = false;
@@ -107,7 +107,6 @@ export default function AdminDashboard() {
         });
       })
       .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-        // Có người thoát hẳn (ví dụ tắt tab)
         setRealWorkersMap(prev => {
           if (!prev[key]) return prev;
           return {
@@ -137,6 +136,21 @@ export default function AdminDashboard() {
     setFollowAdmin(true);
   };
 
+  const handleSavePasswords = () => {
+    localStorage.setItem('app_worker_pwd', newWorkerPwd);
+    localStorage.setItem('app_admin_pwd', newAdminPwd);
+    alert('Đã thay đổi mật khẩu thành công! Các thiết bị mới đăng nhập sẽ phải dùng mật khẩu này.');
+    setShowSettings(false);
+  };
+
+  const handleClearData = () => {
+    if (window.confirm('Bạn có chắc muốn xoá toàn bộ dữ liệu tạm thời trong bộ nhớ web?')) {
+      localStorage.clear();
+      setRealWorkersMap({});
+      alert('Đã xoá sạch dữ liệu!');
+    }
+  };
+
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
     if (!lat1 || !lon1 || !lat2 || !lon2) return null;
     const R = 6371;
@@ -151,13 +165,41 @@ export default function AdminDashboard() {
 
   if (!user) return null;
 
+  // Xoá bỏ toàn bộ MOCK DATA, chỉ lấy Real Workers
   const realWorkers = Object.values(realWorkersMap);
   const activeCount = realWorkers.filter(w => w.active).length;
 
   return (
-    <div className="app-container" style={{ display: 'flex', flexDirection: 'row', height: '100vh', overflow: 'hidden' }}>
+    <div className="app-container admin-layout" style={{ display: 'flex', flexDirection: 'row', height: '100vh', overflow: 'hidden' }}>
+      
+      {/* Cài đặt Overlay */}
+      {showSettings && (
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="glass-panel" style={{ padding: '30px', width: '90%', maxWidth: '400px' }}>
+            <h2 style={{ marginBottom: '20px' }}>Cài đặt hệ thống</h2>
+            
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Mật khẩu Quản lý mới:</label>
+              <input type="text" className="input-field" value={newAdminPwd} onChange={(e) => setNewAdminPwd(e.target.value)} />
+            </div>
+            
+            <div style={{ marginBottom: '25px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Mật khẩu Công nhân mới:</label>
+              <input type="text" className="input-field" value={newWorkerPwd} onChange={(e) => setNewWorkerPwd(e.target.value)} />
+            </div>
+
+            <button className="btn btn-primary" style={{ width: '100%', marginBottom: '10px' }} onClick={handleSavePasswords}>
+              Lưu thay đổi
+            </button>
+            <button className="btn" style={{ width: '100%', background: 'var(--bg-card)' }} onClick={() => setShowSettings(false)}>
+              Đóng
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Sidebar */}
-      <div style={{ width: '320px', background: 'var(--bg-dark)', borderRight: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', zIndex: 1000 }}>
+      <div className="admin-sidebar" style={{ width: '320px', background: 'var(--bg-dark)', borderRight: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', zIndex: 1000 }}>
         <div style={{ padding: '24px 20px', borderBottom: '1px solid var(--glass-border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -169,9 +211,15 @@ export default function AdminDashboard() {
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{user.name}</span>
               </div>
             </div>
-            <button onClick={handleLogout} className="btn" style={{ padding: '8px', background: 'transparent', color: 'var(--text-muted)' }}>
-              <LogOut size={20} />
-            </button>
+            
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button onClick={() => setShowSettings(true)} className="btn" style={{ padding: '8px', background: 'transparent', color: 'var(--text-muted)' }}>
+                <Settings size={20} />
+              </button>
+              <button onClick={handleLogout} className="btn" style={{ padding: '8px', background: 'transparent', color: 'var(--text-muted)' }}>
+                <LogOut size={20} />
+              </button>
+            </div>
           </div>
           
           <div className="glass-panel" style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
@@ -184,14 +232,15 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <button 
-            className="btn btn-primary" 
-            style={{ width: '100%', padding: '12px' }}
-            onClick={handleCenterAdmin}
-          >
-            <Crosshair size={18} />
-            Vị trí của tôi
-          </button>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button className="btn btn-primary" style={{ flex: 1, padding: '12px' }} onClick={handleCenterAdmin}>
+              <Crosshair size={18} />
+              Vị trí của tôi
+            </button>
+            <button className="btn btn-danger" style={{ padding: '12px' }} onClick={handleClearData} title="Xoá dữ liệu tạm">
+              <Trash2 size={18} />
+            </button>
+          </div>
         </div>
         
         <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
@@ -200,7 +249,7 @@ export default function AdminDashboard() {
           </h3>
           {realWorkers.length === 0 && (
             <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-              Chưa có công nhân nào trực tuyến. Hãy mở ứng dụng trên điện thoại 4G để bắt đầu theo dõi.
+              Trống. Đợi công nhân kết nối...
             </div>
           )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -230,6 +279,10 @@ export default function AdminDashboard() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                       Cập nhật: {w.location?.timestamp ? new Date(w.location.timestamp).toLocaleTimeString() : 'Chưa rõ'}
+                      <br/>
+                      <span style={{ color: w.active ? '#10b981' : '#ef4444', fontWeight: 'bold' }}>
+                        {w.active ? 'Đã kết nối' : 'Tắt kết nối'}
+                      </span>
                     </div>
                     {distance && (
                       <div style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: '12px', color: '#f59e0b' }}>
@@ -245,7 +298,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Leaflet Map Area */}
-      <div style={{ flex: 1, position: 'relative' }}>
+      <div className="admin-map-area" style={{ flex: 1, position: 'relative' }}>
         <MapContainer 
           center={adminLocation ? [adminLocation.lat, adminLocation.lng] : defaultCenter} 
           zoom={13} 
@@ -302,7 +355,7 @@ export default function AdminDashboard() {
                   <div style={{ color: '#000', padding: '0px' }}>
                     <h3 style={{ margin: '0 0 4px 0', fontSize: '1rem' }}>{w.name}</h3>
                     <p style={{ margin: 0, fontSize: '0.8rem', color: '#666' }}>
-                      Trạng thái: <strong style={{ color: w.active ? '#10b981' : '#ef4444' }}>{w.active ? 'Đang hoạt động' : 'Dừng tín hiệu / Mất kết nối'}</strong>
+                      Trạng thái: <strong style={{ color: w.active ? '#10b981' : '#ef4444' }}>{w.active ? 'Đã kết nối' : 'Tắt kết nối'}</strong>
                     </p>
                     <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#666' }}>
                       Cập nhật cuối: {w.location?.timestamp ? new Date(w.location.timestamp).toLocaleTimeString() : ''}

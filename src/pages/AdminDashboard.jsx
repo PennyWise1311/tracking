@@ -4,6 +4,7 @@ import { useStore } from '../store';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
 import L from 'leaflet';
 import { LogOut, Users, Map as MapIcon, Crosshair } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 
 const defaultCenter = [21.0285, 105.8542]; // Hà Nội
 
@@ -39,13 +40,12 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const [selectedWorker, setSelectedWorker] = useState(null);
   
-  // State cho vị trí Admin
   const [adminLocation, setAdminLocation] = useState(null);
   const [followAdmin, setFollowAdmin] = useState(true);
   const watchIdRef = useRef(null);
 
-  // Dữ liệu thật của công nhân từ các tab khác
-  const [realWorkers, setRealWorkers] = useState([]);
+  // Dữ liệu thật của công nhân từ Supabase
+  const [realWorkersMap, setRealWorkersMap] = useState({});
 
   useEffect(() => {
     if (!user || user.role !== 'admin') {
@@ -53,7 +53,6 @@ export default function AdminDashboard() {
       return;
     }
 
-    // Bật GPS để lấy vị trí của Admin
     if ('geolocation' in navigator) {
       watchIdRef.current = navigator.geolocation.watchPosition(
         (position) => {
@@ -76,26 +75,55 @@ export default function AdminDashboard() {
     };
   }, [user, navigate]);
 
-  // Lấy dữ liệu thật từ LocalStorage liên tục (cập nhật chéo tab)
+  // Lắng nghe Supabase Presence
   useEffect(() => {
-    const fetchWorkers = () => {
-      const workersStr = localStorage.getItem('tracking_workers');
-      if (workersStr) {
-        setRealWorkers(JSON.parse(workersStr));
-      }
-    };
+    const channel = supabase.channel('tracking_room');
 
-    fetchWorkers(); // initial fetch
-    
-    // Lắng nghe sự kiện storage khi tab Worker cập nhật
-    window.addEventListener('storage', fetchWorkers);
-    
-    // Fallback polling mỗi 1 giây để đảm bảo lúc nào cũng có dữ liệu
-    const interval = setInterval(fetchWorkers, 1000);
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        
+        setRealWorkersMap(prev => {
+          const next = { ...prev };
+          const activeIds = new Set();
+
+          // Cập nhật người đang online
+          for (const key in state) {
+            if (state[key].length > 0) {
+              const data = state[key][0]; // lấy data mới nhất của user đó
+              next[data.id] = { ...data, active: data.active !== false };
+              activeIds.add(data.id);
+            }
+          }
+
+          // Những người có trong map nhưng không có trong presence -> mất kết nối
+          for (const id in next) {
+            if (!activeIds.has(id)) {
+              next[id].active = false;
+            }
+          }
+
+          return next;
+        });
+      })
+      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+        // Có người thoát hẳn (ví dụ tắt tab)
+        setRealWorkersMap(prev => {
+          if (!prev[key]) return prev;
+          return {
+            ...prev,
+            [key]: { ...prev[key], active: false }
+          };
+        });
+      })
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Admin đã kết nối vào kênh lắng nghe');
+        }
+      });
 
     return () => {
-      window.removeEventListener('storage', fetchWorkers);
-      clearInterval(interval);
+      supabase.removeChannel(channel);
     };
   }, []);
 
@@ -123,6 +151,9 @@ export default function AdminDashboard() {
 
   if (!user) return null;
 
+  const realWorkers = Object.values(realWorkersMap);
+  const activeCount = realWorkers.filter(w => w.active).length;
+
   return (
     <div className="app-container" style={{ display: 'flex', flexDirection: 'row', height: '100vh', overflow: 'hidden' }}>
       {/* Sidebar */}
@@ -145,8 +176,8 @@ export default function AdminDashboard() {
           
           <div className="glass-panel" style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{realWorkers.length}</div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Công nhân (Realtime)</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{activeCount}/{realWorkers.length}</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Đang hoạt động (Internet)</div>
             </div>
             <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(59, 130, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Users size={20} color="var(--primary)" />
@@ -169,12 +200,12 @@ export default function AdminDashboard() {
           </h3>
           {realWorkers.length === 0 && (
             <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-              Chưa có công nhân nào trực tuyến. Hãy mở tab mới và đăng nhập quyền công nhân để xem dữ liệu thật.
+              Chưa có công nhân nào trực tuyến. Hãy mở ứng dụng trên điện thoại 4G để bắt đầu theo dõi.
             </div>
           )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {realWorkers.map(w => {
-              const distance = adminLocation ? calculateDistance(adminLocation.lat, adminLocation.lng, w.location.lat, w.location.lng) : null;
+              const distance = (adminLocation && w.location) ? calculateDistance(adminLocation.lat, adminLocation.lng, w.location.lat, w.location.lng) : null;
               
               return (
                 <div 
@@ -198,7 +229,7 @@ export default function AdminDashboard() {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      Cập nhật: {new Date(w.location.timestamp).toLocaleTimeString()}
+                      Cập nhật: {w.location?.timestamp ? new Date(w.location.timestamp).toLocaleTimeString() : 'Chưa rõ'}
                     </div>
                     {distance && (
                       <div style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: '12px', color: '#f59e0b' }}>
@@ -253,31 +284,34 @@ export default function AdminDashboard() {
             </>
           )}
 
-          {realWorkers.map((w) => (
-            <Marker
-              key={w.id}
-              position={[w.location.lat, w.location.lng]}
-              icon={getWorkerIcon(w.active)}
-              eventHandlers={{
-                click: () => {
-                  setSelectedWorker(w);
-                  setFollowAdmin(false);
-                },
-              }}
-            >
-              <Popup>
-                <div style={{ color: '#000', padding: '0px' }}>
-                  <h3 style={{ margin: '0 0 4px 0', fontSize: '1rem' }}>{w.name}</h3>
-                  <p style={{ margin: 0, fontSize: '0.8rem', color: '#666' }}>
-                    Trạng thái: <strong style={{ color: w.active ? '#10b981' : '#ef4444' }}>{w.active ? 'Đang hoạt động' : 'Dừng tín hiệu / Mất kết nối'}</strong>
-                  </p>
-                  <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#666' }}>
-                    Cập nhật cuối: {new Date(w.location.timestamp).toLocaleTimeString()}
-                  </p>
-                </div>
-              </Popup>
-            </Marker>
-          ))}
+          {realWorkers.map((w) => {
+            if (!w.location) return null;
+            return (
+              <Marker
+                key={w.id}
+                position={[w.location.lat, w.location.lng]}
+                icon={getWorkerIcon(w.active)}
+                eventHandlers={{
+                  click: () => {
+                    setSelectedWorker(w);
+                    setFollowAdmin(false);
+                  },
+                }}
+              >
+                <Popup>
+                  <div style={{ color: '#000', padding: '0px' }}>
+                    <h3 style={{ margin: '0 0 4px 0', fontSize: '1rem' }}>{w.name}</h3>
+                    <p style={{ margin: 0, fontSize: '0.8rem', color: '#666' }}>
+                      Trạng thái: <strong style={{ color: w.active ? '#10b981' : '#ef4444' }}>{w.active ? 'Đang hoạt động' : 'Dừng tín hiệu / Mất kết nối'}</strong>
+                    </p>
+                    <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#666' }}>
+                      Cập nhật cuối: {w.location?.timestamp ? new Date(w.location.timestamp).toLocaleTimeString() : ''}
+                    </p>
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          })}
         </MapContainer>
       </div>
     </div>

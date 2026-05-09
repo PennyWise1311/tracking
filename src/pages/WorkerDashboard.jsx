@@ -4,6 +4,7 @@ import { useStore } from '../store';
 import { MapContainer, TileLayer, Marker, Circle, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { LogOut, Navigation, Bluetooth, ShieldAlert, MonitorPlay } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 
 // Custom icon cho Marker
 const workerIcon = new L.Icon({
@@ -34,38 +35,48 @@ export default function WorkerDashboard() {
   // Ref quản lý
   const watchIdRef = useRef(null);
   const wakeLockRef = useRef(null);
+  const channelRef = useRef(null);
 
   useEffect(() => {
     if (!user || user.role !== 'worker') {
       navigate('/');
+      return;
     }
+
+    // Kết nối Supabase Realtime
+    const channel = supabase.channel('tracking_room', {
+      config: {
+        presence: { key: user.id },
+      },
+    });
+
+    channel.subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        console.log('Đã kết nối vào kênh Supabase');
+      }
+    });
+
+    channelRef.current = channel;
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, navigate]);
 
-  // Hàm cập nhật trạng thái lên LocalStorage để Admin thấy (dữ liệu thật qua các tab)
-  const syncToAdmin = (newLoc, isActive) => {
-    if (!user) return;
-    const workersStr = localStorage.getItem('tracking_workers');
-    let workers = workersStr ? JSON.parse(workersStr) : [];
-    
-    const myData = {
-      id: user.id,
-      name: user.name,
-      location: newLoc,
-      active: isActive
-    };
-    
-    const existingIdx = workers.findIndex(w => w.id === user.id);
-    if (existingIdx >= 0) {
-      workers[existingIdx] = myData;
-    } else {
-      workers.push(myData);
+  // Hàm cập nhật trạng thái lên Supabase
+  const syncToAdmin = async (newLoc, isActive) => {
+    if (channelRef.current && channelRef.current.state === 'joined') {
+      await channelRef.current.track({
+        id: user.id,
+        name: user.name,
+        location: newLoc,
+        active: isActive,
+        timestamp: newLoc.timestamp
+      });
     }
-    
-    localStorage.setItem('tracking_workers', JSON.stringify(workers));
-    window.dispatchEvent(new Event('storage')); // trigger update
   };
 
-  // Giữ màn hình luôn sáng để GPS không bị hệ điều hành tắt ngầm
+  // Giữ màn hình luôn sáng
   const requestWakeLock = async () => {
     try {
       if ('wakeLock' in navigator) {
@@ -87,10 +98,8 @@ export default function WorkerDashboard() {
   };
 
   const startTracking = async () => {
-    // 1. Giữ sáng màn hình
     await requestWakeLock();
 
-    // 2. Bật GPS
     if ('geolocation' in navigator) {
       watchIdRef.current = navigator.geolocation.watchPosition(
         (position) => {
@@ -103,7 +112,6 @@ export default function WorkerDashboard() {
           setTrackingActive(true);
           setErrorMsg('');
           
-          // GỬI DỮ LIỆU ĐỊNH VỊ THẬT CHO ADMIN
           syncToAdmin(newLoc, true);
         },
         (error) => {
@@ -118,7 +126,6 @@ export default function WorkerDashboard() {
       setErrorMsg('Trình duyệt không hỗ trợ Geolocation.');
     }
 
-    // 3. Xin quyền Bluetooth
     try {
       if (navigator.bluetooth) {
         setBluetoothEnabled(true);
@@ -136,26 +143,14 @@ export default function WorkerDashboard() {
     setBluetoothEnabled(false);
     releaseWakeLock();
     
-    // Báo cho Admin biết đã mất tín hiệu / dừng
-    if (location) {
-      syncToAdmin(location, false);
+    // Gỡ tracking khỏi presence
+    if (channelRef.current) {
+      channelRef.current.untrack();
     }
   };
 
   const handleLogout = () => {
     stopTracking();
-    
-    // Xoá hẳn khỏi danh sách active trên admin
-    if (user) {
-      const workersStr = localStorage.getItem('tracking_workers');
-      if (workersStr) {
-        let workers = JSON.parse(workersStr);
-        workers = workers.filter(w => w.id !== user.id);
-        localStorage.setItem('tracking_workers', JSON.stringify(workers));
-        window.dispatchEvent(new Event('storage'));
-      }
-    }
-
     logout();
     navigate('/');
   };
@@ -177,7 +172,7 @@ export default function WorkerDashboard() {
             <h2 style={{ fontSize: '1rem', margin: 0 }}>{user.name}</h2>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: trackingActive ? 'var(--accent)' : 'var(--text-muted)' }}>
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: trackingActive ? 'var(--accent)' : 'var(--text-muted)', boxShadow: trackingActive ? '0 0 10px var(--accent)' : 'none' }}></div>
-              {trackingActive ? 'Đang theo dõi vị trí' : 'Đang tạm dừng'}
+              {trackingActive ? 'Đang gửi vị trí lên máy chủ' : 'Đang tạm dừng'}
             </div>
           </div>
         </div>

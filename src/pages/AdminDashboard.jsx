@@ -48,6 +48,7 @@ export default function AdminDashboard() {
   const [showSettings, setShowSettings] = useState(false);
   const [showDbModal, setShowDbModal] = useState(false);
   const [newCode, setNewCode] = useState('');
+  const [newName, setNewName] = useState('');
   const [dbCodes, setDbCodes] = useState([]);
   const [newAdminPwd, setNewAdminPwd] = useState(localStorage.getItem('app_admin_pwd') || '123');
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -90,13 +91,20 @@ export default function AdminDashboard() {
   };
 
   const handleAddCode = async () => {
-    if (!newCode.trim()) return;
-    const { error } = await supabase.from('employee_accounts').insert([{ code: newCode.trim(), is_registered: false }]);
+    if (!newCode.trim() || !newName.trim()) {
+      return alert('Vui lòng nhập đầy đủ Tên công nhân và Mã nhân viên!');
+    }
+    const { error } = await supabase.from('employee_accounts').insert([{ 
+      name: newName.trim(), 
+      code: newCode.trim(), 
+      is_registered: true // Đã được quản lý tạo nên đánh dấu đăng ký luôn
+    }]);
     if (error) {
-      alert('Lỗi: Mã này đã tồn tại hoặc chưa tạo bảng trên Supabase!');
+      alert('Lỗi: Tên hoặc Mã nhân viên này đã tồn tại!');
       console.error(error);
     } else {
       setNewCode('');
+      setNewName('');
       loadCodes();
     }
   };
@@ -222,21 +230,24 @@ export default function AdminDashboard() {
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="glass-panel" style={{ padding: '30px', width: '90%', maxWidth: '500px', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
             <h2 style={{ marginBottom: '20px', color: 'var(--primary)' }}>Cơ sở dữ liệu (Database)</h2>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '16px' }}>Thêm mã nhân viên mới. Công nhân sẽ dùng mã này làm mật khẩu để đăng ký tài khoản.</p>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '16px' }}>Thêm tài khoản công nhân mới. Công nhân sẽ dùng Tên và Mã nhân viên này để đăng nhập.</p>
             
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-              <input type="text" className="input-field" placeholder="Nhập mã nhân viên mới (VD: NV001)" value={newCode} onChange={(e) => setNewCode(e.target.value)} />
-              <button className="btn btn-primary" onClick={handleAddCode}><Plus size={18} /></button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+              <input type="text" className="input-field" placeholder="Tên công nhân (VD: kieu)" value={newName} onChange={(e) => setNewName(e.target.value)} />
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <input type="text" className="input-field" placeholder="Mã nhân viên / Mật khẩu (VD: NV001)" value={newCode} onChange={(e) => setNewCode(e.target.value)} />
+                <button className="btn btn-primary" onClick={handleAddCode}><Plus size={18} /></button>
+              </div>
             </div>
             
             <div style={{ flex: 1, overflowY: 'auto', marginBottom: '20px', background: 'var(--bg-dark)', borderRadius: '8px', padding: '10px' }}>
-              {dbCodes.length === 0 && <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px' }}>Chưa có mã nhân viên nào</div>}
+              {dbCodes.length === 0 && <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px' }}>Chưa có tài khoản nào</div>}
               {dbCodes.map(c => (
                 <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', borderBottom: '1px solid var(--glass-border)' }}>
                   <div>
-                    <strong style={{ color: 'var(--text-main)' }}>{c.code}</strong>
-                    <div style={{ fontSize: '0.8rem', color: c.is_registered ? 'var(--accent)' : 'var(--text-muted)' }}>
-                      {c.is_registered ? `Đã đăng ký bởi: ${c.name}` : 'Chưa đăng ký'}
+                    <strong style={{ color: 'var(--text-main)', fontSize: '1.1rem' }}>{c.name}</strong>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                      Mã NV (Mật khẩu): <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{c.code}</span>
                     </div>
                   </div>
                   <button className="btn btn-danger" style={{ padding: '6px' }} onClick={() => handleDeleteCode(c.id)}><Trash2 size={16} /></button>

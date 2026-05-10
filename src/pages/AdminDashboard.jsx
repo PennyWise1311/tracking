@@ -29,7 +29,7 @@ const getWorkerIcon = (active) => new L.Icon({
 });
 
 const adminIcon = new L.Icon({
-  iconUrl: `data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24' fill='%23f59e0b' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'%3E%3C/polygon%3E%3C/svg%3E`,
+  iconUrl: `data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24' fill='%23da251d' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'%3E%3C/polygon%3E%3C/svg%3E`,
   iconSize: [40, 40],
   iconAnchor: [20, 20],
   popupAnchor: [0, -20]
@@ -244,7 +244,7 @@ export default function AdminDashboard() {
               <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{activeCount}/{realWorkers.length}</div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Đang hoạt động (Internet)</div>
             </div>
-            <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(59, 130, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(218, 37, 29, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Users size={20} color="var(--primary)" />
             </div>
           </div>
@@ -288,7 +288,7 @@ export default function AdminDashboard() {
                     padding: '16px', 
                     cursor: 'pointer',
                     border: selectedWorker?.id === w.id ? '1px solid var(--primary)' : '1px solid transparent',
-                    background: selectedWorker?.id === w.id ? 'rgba(59, 130, 246, 0.1)' : 'var(--bg-card)',
+                    background: selectedWorker?.id === w.id ? 'rgba(218, 37, 29, 0.05)' : 'var(--bg-card)',
                     transition: 'all 0.2s'
                   }}
                 >
@@ -305,7 +305,7 @@ export default function AdminDashboard() {
                       </span>
                     </div>
                     {distance && (
-                      <div style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: '12px', color: '#f59e0b' }}>
+                      <div style={{ fontSize: '0.75rem', background: 'rgba(218, 37, 29, 0.1)', padding: '2px 8px', borderRadius: '12px', color: 'var(--primary)' }}>
                         Cách {distance}km
                       </div>
                     )}
@@ -338,7 +338,7 @@ export default function AdminDashboard() {
               <Marker position={[adminLocation.lat, adminLocation.lng]} icon={adminIcon}>
                 <Popup>
                   <div style={{ color: '#000', padding: '0px', textAlign: 'center' }}>
-                    <h3 style={{ margin: '0 0 4px 0', fontSize: '1rem', color: '#f59e0b' }}>Vị trí của bạn (Quản lý)</h3>
+                    <h3 style={{ margin: '0 0 4px 0', fontSize: '1rem', color: 'var(--primary)' }}>Vị trí của bạn (Quản lý)</h3>
                   </div>
                 </Popup>
               </Marker>
@@ -347,8 +347,8 @@ export default function AdminDashboard() {
                 center={[adminLocation.lat, adminLocation.lng]}
                 radius={10000} // 10km
                 pathOptions={{
-                  color: "#f59e0b",
-                  fillColor: "#f59e0b",
+                  color: "var(--primary)",
+                  fillColor: "var(--primary)",
                   fillOpacity: 0.05,
                   weight: 2,
                   dashArray: '5, 10'

@@ -8,7 +8,7 @@ import { supabase } from '../supabaseClient';
 
 // Custom icon cho Marker
 const workerIcon = new L.Icon({
-  iconUrl: "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z'%3E%3C/path%3E%3Ccircle cx='12' cy='10' r='3'%3E%3C/circle%3E%3C/svg%3E",
+  iconUrl: "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 24 24' fill='none' stroke='%23da251d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z'%3E%3C/path%3E%3Ccircle cx='12' cy='10' r='3'%3E%3C/circle%3E%3C/svg%3E",
   iconSize: [36, 36],
   iconAnchor: [18, 36]
 });
@@ -187,17 +187,17 @@ export default function WorkerDashboard() {
       {!trackingActive && (
         <div style={{
           position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(15, 23, 42, 0.8)', zIndex: 1001,
+          background: 'rgba(255, 255, 255, 0.85)', zIndex: 1001,
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           backdropFilter: 'blur(4px)'
         }}>
           <div className="glass-panel animate-fade-in" style={{ padding: '30px', maxWidth: '400px', textAlign: 'center' }}>
-            <ShieldAlert size={48} color="var(--danger)" style={{ marginBottom: '16px' }} />
+            <ShieldAlert size={48} color="var(--primary)" style={{ marginBottom: '16px' }} />
             <h2 style={{ marginBottom: '12px' }}>Yêu cầu bật định vị</h2>
             <p style={{ color: 'var(--text-muted)', marginBottom: '24px', fontSize: '0.9rem', lineHeight: '1.5' }}>
               Để tiếp tục công việc, bạn cần bật GPS và Bluetooth. Hệ thống sẽ giữ sáng màn hình để đảm bảo định vị được gửi liên tục cho quản lý ngay cả khi bạn bỏ điện thoại vào túi.
             </p>
-            {errorMsg && <p style={{ color: 'var(--danger)', marginBottom: '16px', fontSize: '0.9rem' }}>{errorMsg}</p>}
+            {errorMsg && <p style={{ color: 'var(--primary)', marginBottom: '16px', fontSize: '0.9rem' }}>{errorMsg}</p>}
             
             <button className="btn btn-primary" onClick={startTracking} style={{ width: '100%', padding: '16px' }}>
               <Navigation size={20} />
@@ -211,7 +211,7 @@ export default function WorkerDashboard() {
       {trackingActive && (
         <div style={{ position: 'absolute', bottom: '30px', left: '50%', transform: 'translateX(-50%)', zIndex: 1000, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px' }}>
           <div className="glass-panel" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', borderRadius: '30px' }}>
-            <Navigation size={16} color="var(--accent)" />
+            <Navigation size={16} color="var(--primary)" />
             <span style={{ fontSize: '0.85rem', fontWeight: '500' }}>GPS Bật</span>
           </div>
           <div className="glass-panel" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', borderRadius: '30px' }}>
@@ -219,7 +219,7 @@ export default function WorkerDashboard() {
             <span style={{ fontSize: '0.85rem', fontWeight: '500' }}>{bluetoothEnabled ? 'BT Bật' : 'BT Tắt'}</span>
           </div>
           <div className="glass-panel" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', borderRadius: '30px' }}>
-            <MonitorPlay size={16} color="var(--accent)" />
+            <MonitorPlay size={16} color="var(--primary)" />
             <span style={{ fontSize: '0.85rem', fontWeight: '500' }}>Wake Lock Bật</span>
           </div>
         </div>
@@ -248,8 +248,8 @@ export default function WorkerDashboard() {
                 center={[location.lat, location.lng]}
                 radius={10000} // 10km
                 pathOptions={{
-                  color: "#3b82f6",
-                  fillColor: "#3b82f6",
+                  color: "#da251d",
+                  fillColor: "#da251d",
                   fillOpacity: 0.05,
                   weight: 2,
                   opacity: 0.3
@@ -259,8 +259,8 @@ export default function WorkerDashboard() {
                 center={[location.lat, location.lng]}
                 radius={100} // radar nhỏ
                 pathOptions={{
-                  color: "#3b82f6",
-                  fillColor: "#3b82f6",
+                  color: "#da251d",
+                  fillColor: "#da251d",
                   fillOpacity: 0.3,
                   weight: 1,
                   opacity: 0.8

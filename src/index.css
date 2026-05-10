@@ -2,16 +2,20 @@
 @import "leaflet/dist/leaflet.css";
 
 :root {
-  --bg-dark: #0f172a;
-  --bg-card: rgba(30, 41, 59, 0.7);
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --primary: #3b82f6;
-  --primary-hover: #2563eb;
-  --accent: #10b981;
-  --danger: #ef4444;
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  /* Vingroup Theme Colors */
+  --bg-dark: #f0f2f5; /* Light background instead of dark */
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  
+  --primary: #da251d; /* Vingroup Red */
+  --primary-hover: #b91c18;
+  
+  --accent: #10b981; /* Keep green for active/success status */
+  --danger: #da251d; /* Same as primary red */
+  
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
 * {
@@ -26,8 +30,9 @@ body {
   color: var(--text-main);
   min-height: 100vh;
   overflow-x: hidden;
-  background-image: radial-gradient(circle at top right, rgba(59, 130, 246, 0.15), transparent 40%),
-                    radial-gradient(circle at bottom left, rgba(16, 185, 129, 0.1), transparent 40%);
+  /* Light subtle gradient matching Vingroup theme */
+  background-image: radial-gradient(circle at top right, rgba(218, 37, 29, 0.05), transparent 40%),
+                    radial-gradient(circle at bottom left, rgba(218, 37, 29, 0.03), transparent 40%);
   background-attachment: fixed;
 }
 
@@ -63,43 +68,43 @@ body {
 
 .btn-primary {
   background: var(--primary);
-  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 4px 14px rgba(218, 37, 29, 0.3);
 }
 
 .btn-primary:hover {
   background: var(--primary-hover);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+  box-shadow: 0 6px 20px rgba(218, 37, 29, 0.4);
 }
 
 .btn-accent {
-  background: var(--accent);
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+  background: #1e293b; /* Dark slate for secondary action */
+  box-shadow: 0 4px 14px rgba(30, 41, 59, 0.3);
 }
 
 .btn-accent:hover {
-  background: #059669;
+  background: #0f172a;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+  box-shadow: 0 6px 20px rgba(30, 41, 59, 0.4);
 }
 
 .btn-danger {
   background: var(--danger);
-  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
+  box-shadow: 0 4px 14px rgba(218, 37, 29, 0.3);
 }
 
 .btn-danger:hover {
-  background: #dc2626;
+  background: var(--primary-hover);
   transform: translateY(-2px);
 }
 
 .input-field {
   width: 100%;
   padding: 14px 16px;
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
   border-radius: 8px;
-  color: white;
+  color: #1e293b;
   font-size: 1rem;
   transition: border-color 0.2s, box-shadow 0.2s;
   font-family: inherit;
@@ -108,11 +113,11 @@ body {
 .input-field:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 0 0 3px rgba(218, 37, 29, 0.15);
 }
 
 .input-field::placeholder {
-  color: var(--text-muted);
+  color: #94a3b8;
 }
 
 /* Animations */
@@ -133,9 +138,10 @@ body {
   overflow: hidden;
 }
 
-/* Biến bản đồ Google thành Dark Mode */
+/* Biến bản đồ Google thành Normal Mode (Light) vì đổi sang nền sáng */
 .dark-map-tiles {
-  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+  /* Loại bỏ filter để giữ nguyên màu sáng của bản đồ */
+  filter: none;
 }
 
 .leaflet-container {

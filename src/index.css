@@ -161,10 +161,18 @@ body {
   height: 100%;
 }
 
+.mobile-toggle {
+  display: none !important;
+}
+
 /* Responsive Design cho Điện thoại và iPad */
 @media (max-width: 768px) {
   .admin-layout {
     flex-direction: column-reverse !important;
+  }
+
+  .mobile-toggle {
+    display: block !important;
   }
 
   .admin-sidebar {
@@ -172,11 +180,25 @@ body {
     height: 45vh !important;
     border-right: none !important;
     border-top: 2px solid var(--glass-border);
+    transition: height 0.3s ease;
+  }
+
+  .admin-sidebar.collapsed {
+    height: 38px !important; /* Chiều cao của thẻ mobile-toggle padding 8px + icon 20px = ~36px */
+  }
+
+  .admin-sidebar.collapsed .sidebar-content {
+    display: none !important;
   }
 
   .admin-map-area {
     height: 55vh !important;
     flex: none !important;
+    transition: height 0.3s ease;
+  }
+
+  .admin-sidebar.collapsed ~ .admin-map-area {
+    height: calc(100vh - 38px) !important;
   }
 
   .hide-mobile {

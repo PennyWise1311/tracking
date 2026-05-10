@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
 import L from 'leaflet';
-import { LogOut, Users, Map as MapIcon, Crosshair, Settings, Trash2, RefreshCw, Database, Plus } from 'lucide-react';
+import { LogOut, Users, Map as MapIcon, Crosshair, Settings, Trash2, RefreshCw, Database, Plus, ChevronUp, ChevronDown } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
 const defaultCenter = [21.0285, 105.8542]; // Hà Nội
@@ -71,6 +71,7 @@ export default function AdminDashboard() {
   const [newCode, setNewCode] = useState('');
   const [newName, setNewName] = useState('');
   const [dbCodes, setDbCodes] = useState([]);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [newAdminPwd, setNewAdminPwd] = useState(localStorage.getItem('app_admin_pwd') || '123');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const channelRef = useRef(null);
@@ -305,8 +306,18 @@ export default function AdminDashboard() {
       )}
 
       {/* Sidebar */}
-      <div className="admin-sidebar" style={{ width: '320px', background: 'var(--bg-dark)', borderRight: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', zIndex: 1000 }}>
-        <div style={{ padding: '24px 20px', borderBottom: '1px solid var(--glass-border)' }}>
+      <div className={`admin-sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`} style={{ width: '320px', background: 'var(--bg-dark)', borderRight: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', zIndex: 1000 }}>
+        
+        {/* Mobile Drag Handle / Toggle */}
+        <div className="mobile-toggle" onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} style={{ padding: '8px', textAlign: 'center', background: 'var(--bg-card)', borderBottom: '1px solid var(--glass-border)', cursor: 'pointer', display: 'none' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: 'var(--primary)', fontWeight: '500', fontSize: '0.9rem' }}>
+            {isSidebarCollapsed ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            {isSidebarCollapsed ? 'Hiện danh sách nhân viên' : 'Thu gọn danh sách'}
+          </div>
+        </div>
+
+        <div className="sidebar-content" style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+          <div style={{ padding: '24px 20px', borderBottom: '1px solid var(--glass-border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

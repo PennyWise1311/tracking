@@ -60,7 +60,7 @@ export default function AdminDashboard() {
   const { user, logout } = useStore();
   const navigate = useNavigate();
   const [selectedWorker, setSelectedWorker] = useState(null);
-  
+
   const [adminLocation, setAdminLocation] = useState(null);
   const [followAdmin, setFollowAdmin] = useState(true);
   const watchIdRef = useRef(null);
@@ -116,9 +116,9 @@ export default function AdminDashboard() {
     if (!newCode.trim() || !newName.trim()) {
       return alert('Vui lòng nhập đầy đủ Tên công nhân và Mã nhân viên!');
     }
-    const { error } = await supabase.from('employee_accounts').insert([{ 
-      name: newName.trim(), 
-      code: newCode.trim(), 
+    const { error } = await supabase.from('employee_accounts').insert([{
+      name: newName.trim(),
+      code: newCode.trim(),
       is_registered: true // Đã được quản lý tạo nên đánh dấu đăng ký luôn
     }]);
     if (error) {
@@ -149,7 +149,7 @@ export default function AdminDashboard() {
     channel
       .on('presence', { event: 'sync' }, () => {
         const state = channel.presenceState();
-        
+
         setRealWorkersMap(prev => {
           const next = { ...prev };
           const activeIds = new Set();
@@ -232,10 +232,10 @@ export default function AdminDashboard() {
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return (R * c).toFixed(1);
   };
 
@@ -246,14 +246,14 @@ export default function AdminDashboard() {
 
   return (
     <div className="app-container admin-layout" style={{ display: 'flex', flexDirection: 'row', height: '100vh', overflow: 'hidden' }}>
-      
+
       {/* Database Modal */}
       {showDbModal && (
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="glass-panel" style={{ padding: '30px', width: '90%', maxWidth: '500px', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
             <h2 style={{ marginBottom: '20px', color: 'var(--primary)' }}>Cơ sở dữ liệu (Database)</h2>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '16px' }}>Thêm tài khoản công nhân mới. Công nhân sẽ dùng Tên và Mã nhân viên này để đăng nhập.</p>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
               <input type="text" className="input-field" placeholder="Tên công nhân (VD: kieu)" value={newName} onChange={(e) => setNewName(e.target.value)} />
               <div style={{ display: 'flex', gap: '10px' }}>
@@ -261,7 +261,7 @@ export default function AdminDashboard() {
                 <button className="btn btn-primary" onClick={handleAddCode}><Plus size={18} /></button>
               </div>
             </div>
-            
+
             <div style={{ flex: 1, overflowY: 'auto', marginBottom: '20px', background: 'var(--bg-dark)', borderRadius: '8px', padding: '10px' }}>
               {dbCodes.length === 0 && <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px' }}>Chưa có tài khoản nào</div>}
               {dbCodes.map(c => (
@@ -289,7 +289,7 @@ export default function AdminDashboard() {
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="glass-panel" style={{ padding: '30px', width: '90%', maxWidth: '400px' }}>
             <h2 style={{ marginBottom: '20px' }}>Cài đặt hệ thống</h2>
-            
+
             <div style={{ marginBottom: '15px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Mật khẩu Quản lý mới:</label>
               <input type="text" className="input-field" value={newAdminPwd} onChange={(e) => setNewAdminPwd(e.target.value)} />
@@ -309,7 +309,7 @@ export default function AdminDashboard() {
       <div className={`admin-sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`} style={{ width: '320px', background: 'var(--bg-dark)', borderRight: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', zIndex: 1000 }}>
         
         {/* Mobile Drag Handle / Toggle */}
-        <div className="mobile-toggle" onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} style={{ padding: '8px', textAlign: 'center', background: 'var(--bg-card)', borderBottom: '1px solid var(--glass-border)', cursor: 'pointer', display: 'none' }}>
+        <div className="mobile-toggle" onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} style={{ padding: '8px', textAlign: 'center', background: 'var(--bg-card)', borderBottom: '1px solid var(--glass-border)', cursor: 'pointer' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: 'var(--primary)', fontWeight: '500', fontSize: '0.9rem' }}>
             {isSidebarCollapsed ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
             {isSidebarCollapsed ? 'Hiện danh sách nhân viên' : 'Thu gọn danh sách'}
@@ -328,7 +328,7 @@ export default function AdminDashboard() {
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{user.name}</span>
               </div>
             </div>
-            
+
             <div style={{ display: 'flex', gap: '8px' }}>
               <button onClick={() => { setShowDbModal(true); loadCodes(); }} className="btn" style={{ padding: '8px', background: 'transparent', color: 'var(--text-muted)' }} title="Database Mã NV">
                 <Database size={20} />
@@ -341,7 +341,7 @@ export default function AdminDashboard() {
               </button>
             </div>
           </div>
-          
+
           <div className="glass-panel" style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{activeCount}/{realWorkers.length}</div>
@@ -365,7 +365,7 @@ export default function AdminDashboard() {
             </button>
           </div>
         </div>
-        
+
         <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
           <h3 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '12px', padding: '0 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>
             Danh sách công nhân
@@ -378,17 +378,17 @@ export default function AdminDashboard() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {realWorkers.map(w => {
               const distance = (adminLocation && w.location) ? calculateDistance(adminLocation.lat, adminLocation.lng, w.location.lat, w.location.lng) : null;
-              
+
               return (
-                <div 
+                <div
                   key={w.id}
                   onClick={() => {
                     setSelectedWorker(w);
                     setFollowAdmin(false);
                   }}
-                  className="glass-panel" 
-                  style={{ 
-                    padding: '16px', 
+                  className="glass-panel"
+                  style={{
+                    padding: '16px',
                     cursor: 'pointer',
                     border: selectedWorker?.id === w.id ? '1px solid var(--primary)' : '1px solid transparent',
                     background: selectedWorker?.id === w.id ? 'rgba(218, 37, 29, 0.05)' : 'var(--bg-card)',
@@ -402,7 +402,7 @@ export default function AdminDashboard() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                       Cập nhật: {w.location?.timestamp ? new Date(w.location.timestamp).toLocaleTimeString() : 'Chưa rõ'}
-                      <br/>
+                      <br />
                       <span style={{ color: w.active ? '#10b981' : '#ef4444', fontWeight: 'bold' }}>
                         {w.active ? 'Đã kết nối' : 'Tắt kết nối'}
                       </span>
@@ -422,9 +422,9 @@ export default function AdminDashboard() {
 
       {/* Leaflet Map Area */}
       <div className="admin-map-area" style={{ flex: 1, position: 'relative' }}>
-        <MapContainer 
-          center={adminLocation ? [adminLocation.lat, adminLocation.lng] : defaultCenter} 
-          zoom={13} 
+        <MapContainer
+          center={adminLocation ? [adminLocation.lat, adminLocation.lng] : defaultCenter}
+          zoom={13}
           zoomControl={true}
           style={{ height: '100%', width: '100%', background: 'var(--bg-dark)' }}
         >
@@ -433,7 +433,7 @@ export default function AdminDashboard() {
             attribution="&copy; Google Maps"
             className="dark-map-tiles"
           />
-          
+
           <MapUpdater selectedWorker={selectedWorker} adminLocation={adminLocation} followAdmin={followAdmin} />
 
           {adminLocation && (
@@ -445,8 +445,8 @@ export default function AdminDashboard() {
                   </div>
                 </Popup>
               </Marker>
-              
-              <Circle 
+
+              <Circle
                 center={[adminLocation.lat, adminLocation.lng]}
                 radius={10000} // 10km
                 pathOptions={{

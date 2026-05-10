@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
 import L from 'leaflet';
-import { LogOut, Users, Map as MapIcon, Crosshair, Settings, Trash2, RefreshCw } from 'lucide-react';
+import { LogOut, Users, Map as MapIcon, Crosshair, Settings, Trash2, RefreshCw, Database, Plus } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
 const defaultCenter = [21.0285, 105.8542]; // Hà Nội
@@ -46,7 +46,9 @@ export default function AdminDashboard() {
 
   const [realWorkersMap, setRealWorkersMap] = useState({});
   const [showSettings, setShowSettings] = useState(false);
-  const [newWorkerPwd, setNewWorkerPwd] = useState(localStorage.getItem('app_worker_pwd') || '1');
+  const [showDbModal, setShowDbModal] = useState(false);
+  const [newCode, setNewCode] = useState('');
+  const [dbCodes, setDbCodes] = useState([]);
   const [newAdminPwd, setNewAdminPwd] = useState(localStorage.getItem('app_admin_pwd') || '123');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const channelRef = useRef(null);
@@ -78,6 +80,33 @@ export default function AdminDashboard() {
       }
     };
   }, [user, navigate]);
+
+  // Load employee codes from Supabase
+  const loadCodes = async () => {
+    const { data, error } = await supabase.from('employee_accounts').select('*').order('created_at', { ascending: false });
+    if (!error && data) {
+      setDbCodes(data);
+    }
+  };
+
+  const handleAddCode = async () => {
+    if (!newCode.trim()) return;
+    const { error } = await supabase.from('employee_accounts').insert([{ code: newCode.trim(), is_registered: false }]);
+    if (error) {
+      alert('Lỗi: Mã này đã tồn tại hoặc chưa tạo bảng trên Supabase!');
+      console.error(error);
+    } else {
+      setNewCode('');
+      loadCodes();
+    }
+  };
+
+  const handleDeleteCode = async (id) => {
+    if (window.confirm('Xoá mã nhân viên này?')) {
+      await supabase.from('employee_accounts').delete().eq('id', id);
+      loadCodes();
+    }
+  };
 
   const connectToSupabase = () => {
     if (channelRef.current) {
@@ -155,9 +184,8 @@ export default function AdminDashboard() {
   };
 
   const handleSavePasswords = () => {
-    localStorage.setItem('app_worker_pwd', newWorkerPwd);
     localStorage.setItem('app_admin_pwd', newAdminPwd);
-    alert('Đã thay đổi mật khẩu thành công! Các thiết bị mới đăng nhập sẽ phải dùng mật khẩu này.');
+    alert('Đã thay đổi mật khẩu Quản lý thành công!');
     setShowSettings(false);
   };
 
@@ -189,6 +217,40 @@ export default function AdminDashboard() {
   return (
     <div className="app-container admin-layout" style={{ display: 'flex', flexDirection: 'row', height: '100vh', overflow: 'hidden' }}>
       
+      {/* Database Modal */}
+      {showDbModal && (
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="glass-panel" style={{ padding: '30px', width: '90%', maxWidth: '500px', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
+            <h2 style={{ marginBottom: '20px', color: 'var(--primary)' }}>Cơ sở dữ liệu (Database)</h2>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '16px' }}>Thêm mã nhân viên mới. Công nhân sẽ dùng mã này làm mật khẩu để đăng ký tài khoản.</p>
+            
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+              <input type="text" className="input-field" placeholder="Nhập mã nhân viên mới (VD: NV001)" value={newCode} onChange={(e) => setNewCode(e.target.value)} />
+              <button className="btn btn-primary" onClick={handleAddCode}><Plus size={18} /></button>
+            </div>
+            
+            <div style={{ flex: 1, overflowY: 'auto', marginBottom: '20px', background: 'var(--bg-dark)', borderRadius: '8px', padding: '10px' }}>
+              {dbCodes.length === 0 && <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px' }}>Chưa có mã nhân viên nào</div>}
+              {dbCodes.map(c => (
+                <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', borderBottom: '1px solid var(--glass-border)' }}>
+                  <div>
+                    <strong style={{ color: 'var(--text-main)' }}>{c.code}</strong>
+                    <div style={{ fontSize: '0.8rem', color: c.is_registered ? 'var(--accent)' : 'var(--text-muted)' }}>
+                      {c.is_registered ? `Đã đăng ký bởi: ${c.name}` : 'Chưa đăng ký'}
+                    </div>
+                  </div>
+                  <button className="btn btn-danger" style={{ padding: '6px' }} onClick={() => handleDeleteCode(c.id)}><Trash2 size={16} /></button>
+                </div>
+              ))}
+            </div>
+
+            <button className="btn" style={{ width: '100%', background: 'var(--text-muted)' }} onClick={() => setShowDbModal(false)}>
+              Đóng
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Cài đặt Overlay */}
       {showSettings && (
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -198,11 +260,6 @@ export default function AdminDashboard() {
             <div style={{ marginBottom: '15px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Mật khẩu Quản lý mới:</label>
               <input type="text" className="input-field" value={newAdminPwd} onChange={(e) => setNewAdminPwd(e.target.value)} />
-            </div>
-            
-            <div style={{ marginBottom: '25px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Mật khẩu Công nhân mới:</label>
-              <input type="text" className="input-field" value={newWorkerPwd} onChange={(e) => setNewWorkerPwd(e.target.value)} />
             </div>
 
             <button className="btn btn-primary" style={{ width: '100%', marginBottom: '10px' }} onClick={handleSavePasswords}>
@@ -230,10 +287,13 @@ export default function AdminDashboard() {
             </div>
             
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={() => setShowSettings(true)} className="btn" style={{ padding: '8px', background: 'transparent', color: 'var(--text-muted)' }}>
+              <button onClick={() => { setShowDbModal(true); loadCodes(); }} className="btn" style={{ padding: '8px', background: 'transparent', color: 'var(--text-muted)' }} title="Database Mã NV">
+                <Database size={20} />
+              </button>
+              <button onClick={() => setShowSettings(true)} className="btn" style={{ padding: '8px', background: 'transparent', color: 'var(--text-muted)' }} title="Cài đặt">
                 <Settings size={20} />
               </button>
-              <button onClick={handleLogout} className="btn" style={{ padding: '8px', background: 'transparent', color: 'var(--text-muted)' }}>
+              <button onClick={handleLogout} className="btn" style={{ padding: '8px', background: 'transparent', color: 'var(--text-muted)' }} title="Đăng xuất">
                 <LogOut size={20} />
               </button>
             </div>

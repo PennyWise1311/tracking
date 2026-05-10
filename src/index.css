@@ -164,18 +164,19 @@ body {
 /* Responsive Design cho Điện thoại và iPad */
 @media (max-width: 768px) {
   .admin-layout {
-    flex-direction: column !important;
+    flex-direction: column-reverse !important;
   }
 
   .admin-sidebar {
     width: 100% !important;
-    height: 40vh !important;
+    height: 45vh !important;
     border-right: none !important;
-    border-bottom: 1px solid var(--glass-border);
+    border-top: 2px solid var(--glass-border);
   }
 
   .admin-map-area {
-    height: 60vh !important;
+    height: 55vh !important;
+    flex: none !important;
   }
 
   .hide-mobile {

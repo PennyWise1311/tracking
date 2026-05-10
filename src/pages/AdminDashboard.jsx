@@ -250,9 +250,9 @@ export default function AdminDashboard() {
       {/* Database Modal */}
       {showDbModal && (
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="glass-panel" style={{ padding: '30px', width: '90%', maxWidth: '500px', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
-            <h2 style={{ marginBottom: '20px', color: 'var(--primary)' }}>Cơ sở dữ liệu (Database)</h2>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '16px' }}>Thêm tài khoản công nhân mới. Công nhân sẽ dùng Tên và Mã nhân viên này để đăng nhập.</p>
+          <div className="glass-panel animate-fade-in" style={{ padding: '20px', width: '95%', maxWidth: '500px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+            <h2 style={{ marginBottom: '16px', color: 'var(--primary)', fontSize: '1.25rem' }}>Cơ sở dữ liệu (Database)</h2>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '12px' }}>Thêm tài khoản công nhân mới.</p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
               <input type="text" className="input-field" placeholder="Tên công nhân (VD: kieu)" value={newName} onChange={(e) => setNewName(e.target.value)} />
@@ -287,8 +287,8 @@ export default function AdminDashboard() {
       {/* Cài đặt Overlay */}
       {showSettings && (
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="glass-panel" style={{ padding: '30px', width: '90%', maxWidth: '400px' }}>
-            <h2 style={{ marginBottom: '20px' }}>Cài đặt hệ thống</h2>
+          <div className="glass-panel animate-fade-in" style={{ padding: '20px', width: '95%', maxWidth: '400px' }}>
+            <h2 style={{ marginBottom: '16px', fontSize: '1.25rem' }}>Cài đặt hệ thống</h2>
 
             <div style={{ marginBottom: '15px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Mật khẩu Quản lý mới:</label>
@@ -317,38 +317,38 @@ export default function AdminDashboard() {
         </div>
 
         <div className="sidebar-content" style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
-          <div style={{ padding: '24px 20px', borderBottom: '1px solid var(--glass-border)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <MapIcon size={20} color="white" />
+          <div className="sidebar-header" style={{ borderBottom: '1px solid var(--glass-border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <MapIcon size={16} color="white" />
+                </div>
+                <div>
+                  <h1 style={{ fontSize: '1.1rem', margin: 0 }}>Admin Panel</h1>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{user.name}</span>
+                </div>
               </div>
-              <div>
-                <h1 style={{ fontSize: '1.2rem', margin: 0 }}>Admin Panel</h1>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{user.name}</span>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={() => { setShowDbModal(true); loadCodes(); }} className="btn" style={{ padding: '8px', background: 'transparent', color: 'var(--text-muted)' }} title="Database Mã NV">
-                <Database size={20} />
-              </button>
-              <button onClick={() => setShowSettings(true)} className="btn" style={{ padding: '8px', background: 'transparent', color: 'var(--text-muted)' }} title="Cài đặt">
-                <Settings size={20} />
-              </button>
-              <button onClick={handleLogout} className="btn" style={{ padding: '8px', background: 'transparent', color: 'var(--text-muted)' }} title="Đăng xuất">
-                <LogOut size={20} />
-              </button>
+              
+              <div className="sidebar-actions" style={{ display: 'flex', gap: '4px' }}>
+                <button onClick={() => { setShowDbModal(true); loadCodes(); }} className="btn" style={{ padding: '8px', background: 'transparent', color: 'var(--text-muted)' }} title="Database Mã NV">
+                  <Database size={20} />
+                </button>
+                <button onClick={() => setShowSettings(true)} className="btn" style={{ padding: '8px', background: 'transparent', color: 'var(--text-muted)' }} title="Cài đặt">
+                  <Settings size={20} />
+                </button>
+                <button onClick={handleLogout} className="btn" style={{ padding: '8px', background: 'transparent', color: 'var(--text-muted)' }} title="Đăng xuất">
+                  <LogOut size={20} />
+                </button>
             </div>
           </div>
 
-          <div className="glass-panel" style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+          <div className="glass-panel stats-card" style={{ padding: '12px', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{activeCount}/{realWorkers.length}</div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Đang hoạt động (Internet)</div>
+              <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{activeCount}/{realWorkers.length}</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Đang hoạt động</div>
             </div>
-            <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(218, 37, 29, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Users size={20} color="var(--primary)" />
+            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(218, 37, 29, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Users size={18} color="var(--primary)" />
             </div>
           </div>
 
@@ -386,13 +386,14 @@ export default function AdminDashboard() {
                     setSelectedWorker(w);
                     setFollowAdmin(false);
                   }}
-                  className="glass-panel"
+                  className="glass-panel worker-item"
                   style={{
-                    padding: '16px',
+                    padding: '14px',
                     cursor: 'pointer',
-                    border: selectedWorker?.id === w.id ? '1px solid var(--primary)' : '1px solid transparent',
+                    border: selectedWorker?.id === w.id ? '1.5px solid var(--primary)' : '1px solid transparent',
                     background: selectedWorker?.id === w.id ? 'rgba(218, 37, 29, 0.05)' : 'var(--bg-card)',
-                    transition: 'all 0.2s'
+                    transition: 'all 0.2s',
+                    boxShadow: selectedWorker?.id === w.id ? '0 4px 12px rgba(218, 37, 29, 0.1)' : 'var(--glass-shadow)'
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

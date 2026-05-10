@@ -204,4 +204,35 @@ body {
   .hide-mobile {
     display: none !important;
   }
+
+  .admin-sidebar {
+    padding: 0 !important;
+  }
+
+  .sidebar-header {
+    padding: 12px 16px !important;
+  }
+
+  .stats-card {
+    padding: 10px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .worker-item {
+    padding: 12px !important;
+  }
+
+  /* Compact header on mobile */
+  .admin-sidebar h1 {
+    font-size: 1rem !important;
+  }
+
+  .sidebar-actions button {
+    padding: 6px !important;
+  }
+
+  /* Modal improvements */
+  .glass-panel {
+    padding: 20px !important;
+  }
 }

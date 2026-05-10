@@ -137,11 +137,18 @@ export default function WorkerDashboard() {
         },
         (error) => {
           console.error("Lỗi GPS:", error);
-          setErrorMsg('Vui lòng bật định vị (GPS) để có thể theo dõi.');
-          setTrackingActive(false);
-          releaseWakeLock();
+          if (error.code === 1) { // PERMISSION_DENIED
+            setErrorMsg('Bạn đã từ chối quyền truy cập Vị trí. Vui lòng cấp quyền trong cài đặt trình duyệt.');
+            setTrackingActive(false);
+            releaseWakeLock();
+            if (watchIdRef.current) navigator.geolocation.clearWatch(watchIdRef.current);
+          } else if (error.code === 2) { // POSITION_UNAVAILABLE
+            setErrorMsg('Không thể xác định vị trí hiện tại. Đang thử lại...');
+          } else if (error.code === 3) { // TIMEOUT
+            setErrorMsg('Định vị quá hạn. Đang tiếp tục quét GPS...');
+          }
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        { enableHighAccuracy: true, timeout: 20000, maximumAge: 5000 }
       );
     } else {
       setErrorMsg('Trình duyệt không hỗ trợ Geolocation.');

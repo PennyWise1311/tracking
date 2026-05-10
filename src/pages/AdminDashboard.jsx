@@ -93,7 +93,7 @@ export default function AdminDashboard() {
         (error) => {
           console.error("Lỗi GPS Admin:", error);
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        { enableHighAccuracy: true, timeout: 20000, maximumAge: 5000 }
       );
     }
 

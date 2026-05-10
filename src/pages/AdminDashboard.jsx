@@ -22,10 +22,10 @@ function MapUpdater({ selectedWorker, adminLocation, followAdmin }) {
 }
 
 const getWorkerIcon = (active) => new L.Icon({
-  iconUrl: `data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='${active ? '%2310b981' : '%23ef4444'}' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z'%3E%3C/path%3E%3Ccircle cx='12' cy='10' r='3' fill='%23ffffff'%3E%3C/circle%3E%3C/svg%3E`,
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
-  popupAnchor: [0, -32]
+  iconUrl: `data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='8' fill='${active ? '%2310b981' : '%23ef4444'}' stroke='%23ffffff' stroke-width='2'/%3E%3C/svg%3E`,
+  iconSize: [20, 20],
+  iconAnchor: [10, 10],
+  popupAnchor: [0, -10]
 });
 
 const adminIcon = new L.Icon({

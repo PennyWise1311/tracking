@@ -8,9 +8,9 @@ import { supabase } from '../supabaseClient';
 
 // Custom icon cho Marker
 const workerIcon = new L.Icon({
-  iconUrl: "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 24 24' fill='none' stroke='%23da251d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z'%3E%3C/path%3E%3Ccircle cx='12' cy='10' r='3'%3E%3C/circle%3E%3C/svg%3E",
-  iconSize: [36, 36],
-  iconAnchor: [18, 36]
+  iconUrl: "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='8' fill='%23da251d' stroke='%23ffffff' stroke-width='2'/%3E%3C/svg%3E",
+  iconSize: [20, 20],
+  iconAnchor: [10, 10]
 });
 
 // Component con để pan map tới vị trí người dùng

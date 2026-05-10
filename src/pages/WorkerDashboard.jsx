@@ -7,10 +7,31 @@ import { LogOut, Navigation, Bluetooth, ShieldAlert, MonitorPlay } from 'lucide-
 import { supabase } from '../supabaseClient';
 
 // Custom icon cho Marker
-const workerIcon = new L.Icon({
-  iconUrl: "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='8' fill='%23da251d' stroke='%23ffffff' stroke-width='2'/%3E%3C/svg%3E",
-  iconSize: [20, 20],
-  iconAnchor: [10, 10]
+const getWorkerIcon = (name) => new L.divIcon({
+  className: 'custom-div-icon',
+  html: `
+    <div style="position: relative; display: flex; flex-direction: column; align-items: center; left: -10px; top: -10px;">
+      <svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'>
+        <circle cx='10' cy='10' r='8' fill='#da251d' stroke='#ffffff' stroke-width='2'/>
+      </svg>
+      <div style="
+        position: absolute;
+        top: 22px;
+        background: rgba(255, 255, 255, 0.9);
+        color: #1e293b;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        white-space: nowrap;
+      ">
+        ${name} (Bạn)
+      </div>
+    </div>
+  `,
+  iconSize: [0, 0],
+  iconAnchor: [0, 0]
 });
 
 // Component con để pan map tới vị trí người dùng
@@ -243,7 +264,7 @@ export default function WorkerDashboard() {
 
           {location && (
             <>
-              <Marker position={[location.lat, location.lng]} icon={workerIcon} />
+              <Marker position={[location.lat, location.lng]} icon={getWorkerIcon(user.name)} />
               <Circle 
                 center={[location.lat, location.lng]}
                 radius={10000} // 10km

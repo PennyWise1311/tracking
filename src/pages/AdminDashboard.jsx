@@ -21,10 +21,31 @@ function MapUpdater({ selectedWorker, adminLocation, followAdmin }) {
   return null;
 }
 
-const getWorkerIcon = (active) => new L.Icon({
-  iconUrl: `data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='8' fill='${active ? '%2310b981' : '%23ef4444'}' stroke='%23ffffff' stroke-width='2'/%3E%3C/svg%3E`,
-  iconSize: [20, 20],
-  iconAnchor: [10, 10],
+const getWorkerIcon = (name, active) => new L.divIcon({
+  className: 'custom-div-icon',
+  html: `
+    <div style="position: relative; display: flex; flex-direction: column; align-items: center; left: -10px; top: -10px;">
+      <svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'>
+        <circle cx='10' cy='10' r='8' fill='${active ? '#10b981' : '#ef4444'}' stroke='#ffffff' stroke-width='2'/>
+      </svg>
+      <div style="
+        position: absolute;
+        top: 22px;
+        background: rgba(255, 255, 255, 0.9);
+        color: #1e293b;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        white-space: nowrap;
+      ">
+        ${name}
+      </div>
+    </div>
+  `,
+  iconSize: [0, 0],
+  iconAnchor: [0, 0],
   popupAnchor: [0, -10]
 });
 
@@ -434,7 +455,7 @@ export default function AdminDashboard() {
               <Marker
                 key={w.id}
                 position={[w.location.lat, w.location.lng]}
-                icon={getWorkerIcon(w.active)}
+                icon={getWorkerIcon(w.name, w.active)}
                 eventHandlers={{
                   click: () => {
                     setSelectedWorker(w);

@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
-import { MapContainer, TileLayer, Marker, Circle, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Circle, useMap, Polygon, ImageOverlay } from 'react-leaflet';
 import L from 'leaflet';
 import { LogOut, Navigation, Bluetooth, ShieldAlert, MonitorPlay } from 'lucide-react';
 import { supabase } from '../supabaseClient';
@@ -45,7 +45,18 @@ function MapUpdater({ location }) {
   return null;
 }
 
-const defaultCenter = [21.0285, 105.8542]; // Hà Nội
+const defaultCenter = [10.905, 106.528]; // Chuyển tâm về khu vực Hóc Môn
+const projectPoints = [
+  [10.920587, 106.496006],
+  [10.916857, 106.561073],
+  [10.890058, 106.545214],
+  [10.897624, 106.532181],
+  [10.902581, 106.531693]
+];
+const projectBounds = [
+  [10.890058, 106.496006],
+  [10.920587, 106.561073]
+];
 
 export default function WorkerDashboard() {
   const { user, location, setLocation, logout, trackingActive, setTrackingActive } = useStore();
@@ -97,7 +108,7 @@ export default function WorkerDashboard() {
     }
   };
 
-  // Giữ màn hình luôn sáng
+  // Giữ màn hình luôn sáng, độ sáng wakelock để không bị out tab 
   const requestWakeLock = async () => {
     try {
       if ('wakeLock' in navigator) {
@@ -253,7 +264,7 @@ export default function WorkerDashboard() {
         </div>
       )}
 
-      {/* Leaflet Map */}
+      {/* Leaflet Map check leafmap liên tục  */}
       <div style={{ flex: 1, height: '100vh', width: '100vw' }}>
         <MapContainer 
           center={location ? [location.lat, location.lng] : defaultCenter} 
@@ -265,6 +276,24 @@ export default function WorkerDashboard() {
             url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
             attribution="&copy; Google Maps"
             className="dark-map-tiles"
+          />
+
+          {/* Vẽ ranh giới dự án cho công nhân dễ hình dung */}
+          <Polygon
+            positions={projectPoints}
+            pathOptions={{
+              color: 'var(--primary)',
+              fillColor: 'transparent',
+              weight: 2,
+              dashArray: '5, 5'
+            }}
+          />
+          
+          <ImageOverlay
+            url="/src/assets/vinhomes.jpg"
+            bounds={projectBounds}
+            opacity={0.5}
+            interactive={true}
           />
           
           <MapUpdater location={location} />

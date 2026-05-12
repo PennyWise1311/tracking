@@ -17,7 +17,7 @@ export default function Login() {
     
     setIsChecking(true);
 
-    // Kiểm tra thông tin trong Database
+    // kiểm tra thông tin trên supabase 
     const { data, error } = await supabase
       .from('employee_accounts')
       .select('*')

@@ -1,12 +1,25 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
-import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Circle, Polygon, ImageOverlay } from 'react-leaflet';
 import L from 'leaflet';
 import { LogOut, Users, Map as MapIcon, Crosshair, Settings, Trash2, RefreshCw, Database, Plus, ChevronUp, ChevronDown } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
-const defaultCenter = [21.0285, 105.8542]; // Hà Nội
+const defaultCenter = [10.905, 106.528]; // Chuyển tâm về khu vực Hóc Môn
+const projectPoints = [
+  [10.920587, 106.496006],
+  [10.916857, 106.561073],
+  [10.890058, 106.545214],
+  [10.897624, 106.532181],
+  [10.902581, 106.531693]
+];
+
+// Tính toán vùng bao quanh (Bounding Box) cho hình ảnh
+const projectBounds = [
+  [10.890058, 106.496006],
+  [10.920587, 106.561073]
+];
 
 // Helper components & icons
 function MapUpdater({ selectedWorker, adminLocation, followAdmin }) {
@@ -74,6 +87,7 @@ export default function AdminDashboard() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [newAdminPwd, setNewAdminPwd] = useState(localStorage.getItem('app_admin_pwd') || '123');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showProject, setShowProject] = useState(true);
   const channelRef = useRef(null);
 
   useEffect(() => {
@@ -307,7 +321,7 @@ export default function AdminDashboard() {
 
       {/* Sidebar */}
       <div className={`admin-sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`} style={{ width: '320px', background: 'var(--bg-dark)', borderRight: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', zIndex: 1000 }}>
-        
+
         {/* Mobile Drag Handle / Toggle */}
         <div className="mobile-toggle" onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} style={{ padding: '8px', textAlign: 'center', background: 'var(--bg-card)', borderBottom: '1px solid var(--glass-border)', cursor: 'pointer' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: 'var(--primary)', fontWeight: '500', fontSize: '0.9rem' }}>
@@ -324,11 +338,11 @@ export default function AdminDashboard() {
                   <MapIcon size={16} color="white" />
                 </div>
                 <div>
-                  <h1 style={{ fontSize: '1.1rem', margin: 0 }}>Admin Panel</h1>
+                  <h1 style={{ fontSize: '1.1rem', margin: 0 }}>Admin Trang Chủ</h1>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{user.name}</span>
                 </div>
               </div>
-              
+
               <div className="sidebar-actions" style={{ display: 'flex', gap: '4px' }}>
                 <button onClick={() => { setShowDbModal(true); loadCodes(); }} className="btn" style={{ padding: '8px', background: 'transparent', color: 'var(--text-muted)' }} title="Database Mã NV">
                   <Database size={20} />
@@ -339,86 +353,93 @@ export default function AdminDashboard() {
                 <button onClick={handleLogout} className="btn" style={{ padding: '8px', background: 'transparent', color: 'var(--text-muted)' }} title="Đăng xuất">
                   <LogOut size={20} />
                 </button>
+              </div>
+            </div>
+
+            <div className="glass-panel stats-card" style={{ padding: '12px', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{activeCount}/{realWorkers.length}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Đang hoạt động</div>
+              </div>
+              <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(218, 37, 29, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Users size={18} color="var(--primary)" />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button className="btn btn-primary" style={{ flex: 1, padding: '12px' }} onClick={handleCenterAdmin}>
+                <Crosshair size={18} />
+                Vị trí của tôi
+              </button>
+              <button className="btn btn-accent" style={{ padding: '12px' }} onClick={handleRefresh} title="Làm mới kết nối">
+                <RefreshCw size={18} className={isRefreshing ? 'animate-spin' : ''} style={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none' }} />
+              </button>
+              <button className="btn btn-danger" style={{ padding: '12px' }} onClick={handleClearData} title="Xoá dữ liệu tạm">
+                <Trash2 size={18} />
+              </button>
+            </div>
+
+            <div className="glass-panel" style={{ marginTop: '12px', padding: '10px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
+                <input type="checkbox" checked={showProject} onChange={(e) => setShowProject(e.target.checked)} style={{ width: '18px', height: '18px' }} />
+                <span>Hiện quy mô dự án Vinhomes</span>
+              </label>
             </div>
           </div>
 
-          <div className="glass-panel stats-card" style={{ padding: '12px', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{activeCount}/{realWorkers.length}</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Đang hoạt động</div>
-            </div>
-            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(218, 37, 29, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Users size={18} color="var(--primary)" />
-            </div>
-          </div>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
+            <h3 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '12px', padding: '0 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              Danh sách công nhân
+            </h3>
+            {realWorkers.length === 0 && (
+              <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                Trống. Đợi công nhân kết nối...
+              </div>
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {realWorkers.map(w => {
+                const distance = (adminLocation && w.location) ? calculateDistance(adminLocation.lat, adminLocation.lng, w.location.lat, w.location.lng) : null;
 
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button className="btn btn-primary" style={{ flex: 1, padding: '12px' }} onClick={handleCenterAdmin}>
-              <Crosshair size={18} />
-              Vị trí của tôi
-            </button>
-            <button className="btn btn-accent" style={{ padding: '12px' }} onClick={handleRefresh} title="Làm mới kết nối">
-              <RefreshCw size={18} className={isRefreshing ? 'animate-spin' : ''} style={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none' }} />
-            </button>
-            <button className="btn btn-danger" style={{ padding: '12px' }} onClick={handleClearData} title="Xoá dữ liệu tạm">
-              <Trash2 size={18} />
-            </button>
-          </div>
-        </div>
-
-        <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
-          <h3 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '12px', padding: '0 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-            Danh sách công nhân
-          </h3>
-          {realWorkers.length === 0 && (
-            <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-              Trống. Đợi công nhân kết nối...
-            </div>
-          )}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {realWorkers.map(w => {
-              const distance = (adminLocation && w.location) ? calculateDistance(adminLocation.lat, adminLocation.lng, w.location.lat, w.location.lng) : null;
-
-              return (
-                <div
-                  key={w.id}
-                  onClick={() => {
-                    setSelectedWorker(w);
-                    setFollowAdmin(false);
-                  }}
-                  className="glass-panel worker-item"
-                  style={{
-                    padding: '14px',
-                    cursor: 'pointer',
-                    border: selectedWorker?.id === w.id ? '1.5px solid var(--primary)' : '1px solid transparent',
-                    background: selectedWorker?.id === w.id ? 'rgba(218, 37, 29, 0.05)' : 'var(--bg-card)',
-                    transition: 'all 0.2s',
-                    boxShadow: selectedWorker?.id === w.id ? '0 4px 12px rgba(218, 37, 29, 0.1)' : 'var(--glass-shadow)'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ fontWeight: '500' }}>{w.name}</div>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: w.active ? 'var(--accent)' : 'var(--danger)', boxShadow: w.active ? '0 0 8px var(--accent)' : 'none' }}></div>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      Cập nhật: {w.location?.timestamp ? new Date(w.location.timestamp).toLocaleTimeString() : 'Chưa rõ'}
-                      <br />
-                      <span style={{ color: w.active ? '#10b981' : '#ef4444', fontWeight: 'bold' }}>
-                        {w.active ? 'Đã kết nối' : 'Tắt kết nối'}
-                      </span>
+                return (
+                  <div
+                    key={w.id}
+                    onClick={() => {
+                      setSelectedWorker(w);
+                      setFollowAdmin(false);
+                    }}
+                    className="glass-panel worker-item"
+                    style={{
+                      padding: '14px',
+                      cursor: 'pointer',
+                      border: selectedWorker?.id === w.id ? '1.5px solid var(--primary)' : '1px solid transparent',
+                      background: selectedWorker?.id === w.id ? 'rgba(218, 37, 29, 0.05)' : 'var(--bg-card)',
+                      transition: 'all 0.2s',
+                      boxShadow: selectedWorker?.id === w.id ? '0 4px 12px rgba(218, 37, 29, 0.1)' : 'var(--glass-shadow)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ fontWeight: '500' }}>{w.name}</div>
+                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: w.active ? 'var(--accent)' : 'var(--danger)', boxShadow: w.active ? '0 0 8px var(--accent)' : 'none' }}></div>
                     </div>
-                    {distance && (
-                      <div style={{ fontSize: '0.75rem', background: 'rgba(218, 37, 29, 0.1)', padding: '2px 8px', borderRadius: '12px', color: 'var(--primary)' }}>
-                        Cách {distance}km
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                        Cập nhật: {w.location?.timestamp ? new Date(w.location.timestamp).toLocaleTimeString() : 'Chưa rõ'}
+                        <br />
+                        <span style={{ color: w.active ? '#10b981' : '#ef4444', fontWeight: 'bold' }}>
+                          {w.active ? 'Đã kết nối' : 'Tắt kết nối'}
+                        </span>
                       </div>
-                    )}
+                      {distance && (
+                        <div style={{ fontSize: '0.75rem', background: 'rgba(218, 37, 29, 0.1)', padding: '2px 8px', borderRadius: '12px', color: 'var(--primary)' }}>
+                          Cách {distance}km
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
         </div>
       </div>
 
@@ -435,6 +456,29 @@ export default function AdminDashboard() {
             attribution="&copy; Google Maps"
             className="dark-map-tiles"
           />
+
+          {showProject && (
+            <>
+              {/* Vẽ ranh giới dự án */}
+              <Polygon
+                positions={projectPoints}
+                pathOptions={{
+                  color: 'var(--primary)',
+                  fillColor: 'transparent',
+                  weight: 3,
+                  dashArray: '10, 10'
+                }}
+              />
+              
+              {/* Đè hình ảnh quy mô lên */}
+              <ImageOverlay
+                url="/src/assets/vinhomes.jpg" // Bạn hãy đổi tên ảnh thành vinhomes.jpg và bỏ vào src/assets
+                bounds={projectBounds}
+                opacity={0.6}
+                interactive={true}
+              />
+            </>
+          )}
 
           <MapUpdater selectedWorker={selectedWorker} adminLocation={adminLocation} followAdmin={followAdmin} />
 
